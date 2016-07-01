@@ -9,4 +9,4 @@ You need to install "Adafruit_Python_BluefruitLE" first.
 
 This script was tested on OSX, but it might work on Linux as well. Let me know if it works.
 
-**Usage: ota.py -f <hexfile>**
+**Usage: ota.py -f hexfile**
