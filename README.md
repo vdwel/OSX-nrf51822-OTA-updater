@@ -16,7 +16,7 @@ You can even add the ota tool to your arduino ide by editing the file:
 
 add a section with the following code:
 ````
-\#\# ota tool
+## ota tool
 tools.ota.path={runtime.platform.path}/tools/ota
 tools.ota.cmd=ota.py
 tools.ota.cmd.linux=ota.py
@@ -26,7 +26,7 @@ tools.ota.upload.params.verbose=
 tools.ota.upload.params.quiet=
 tools.ota.upload.pattern="{path}/{cmd}" -f {build.path}/{build.project_name}.hex
 ````
-Also edit boards.txt and change the lines with .upload.tool=openocd -> .upload.tool=ota
+Also edit boards.txt and change the lines with ```.upload.tool=openocd``` to ```.upload.tool=ota```
 
 Next create a directory tools and in this directory an ota directory:
 /Library/Arduino15/packages/RedBearLab/hardware/nRF51822/1.0.6/tools/ota
