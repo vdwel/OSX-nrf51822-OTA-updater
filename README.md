@@ -15,6 +15,7 @@ You can even add the ota tool to your arduino ide by editing the file:
 /Library/Arduino15/packages/RedBearLab/hardware/nRF51822/1.0.6/platform.txt
 
 add a section with the following code:
+
 \#\# ota tool
 tools.ota.path={runtime.platform.path}/tools/ota
 tools.ota.cmd=ota.py
