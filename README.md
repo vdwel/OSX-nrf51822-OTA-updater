@@ -8,3 +8,5 @@ It was made by using the Adafruit example and nrf51_dfu_tool from xiongyihui
 You need to install "Adafruit_Python_BluefruitLE" first.
 
 This script was tested on OSX, but it might work on Linux as well. Let me know if it works.
+
+**Usage: ota.py -f <hexfile>**
