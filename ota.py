@@ -6,10 +6,8 @@ import time
 from intelhex import IntelHex
 import Adafruit_BluefruitLE
 
-# Enable debug output.
-# logging.basicConfig(level=logging.DEBUG)
 
-# Define service and characteristic UUIDs used by the UART service.
+# Define service and characteristic UUIDs used by the DFU service.
 DFU_SERVICE_UUID = uuid.UUID('00001530-1212-EFDE-1523-785FEABCD123')
 PKT_CHAR_UUID = uuid.UUID('00001532-1212-EFDE-1523-785FEABCD123')
 CPT_CHAR_UUID = uuid.UUID('00001531-1212-EFDE-1523-785FEABCD123')
@@ -23,17 +21,6 @@ class Commands:
     VALIDATE_FIRMWARE_IMAGE = "04".decode("hex")
     ACTIVATE_FIRMWARE_AND_RESET = "05".decode("hex")
     SYSTEM_RESET = "06".decode("hex")
-
-
-def convert_uint32_to_array(value):
-    """ Convert a number into an array of 4 bytes (LSB). """
-    return [
-        (value >> 0 & 0xFF),
-        (value >> 8 & 0xFF),
-        (value >> 16 & 0xFF),
-        (value >> 24 & 0xFF)
-    ]
-
 
 def convert_uint16_to_array(value):
     """ Convert a number into an array of 2 bytes (LSB). """
@@ -61,7 +48,7 @@ class BleDfuUploader(object):
     def __init__(self, hexfile_path):
         self.hexfile_path = hexfile_path
 
-    # Connect to peer device.
+    # Connect to DFU device.
     def scan_and_connect(self):
         # Clear any cached data because both bluez and CoreBluetooth have issues with
         # caching data and it going stale.
@@ -102,10 +89,13 @@ class BleDfuUploader(object):
 
     def _dfu_state_set(self, opcode):
         self.cpt.write_value(opcode)
+        print('Sent control packet: {0}'.format(opcode.encode("hex")))
 
     def _dfu_data_send(self, data_arr):
         hex_str = convert_array_to_hex_string(data_arr)
         self.pkt.write_value(hex_str)
+        print('Sent data packet: {0}'.format(hex_str.encode("hex")))
+
 
     def dfu_send_image(self):
         # Open the hex file to be sent
@@ -119,21 +109,17 @@ class BleDfuUploader(object):
         # Enable Notifications - Setting the DFU Control Point CCCD to 0x0001
         self.cpt.start_notify(self.received)
 
-        time.sleep(0.1)
 
         # Sending 'START DFU' Command
         self._dfu_state_set(Commands.START_DFU)
-        time.sleep(0.1)
         self.received_notify = 0
         self._dfu_data_send(size_array)
         while self.received_notify == 0:
-            time.sleep(0.001)
+            pass
 
         # Send something like an address (sniffed this from the DFU app)
-        self.cpt.write_value("080C00".decode("hex"))
-        time.sleep(0.1)
+        self._dfu_state_set("080C00".decode("hex"))
         self._dfu_state_set(Commands.RECEIVE_FIRMWARE_IMAGE)
-        time.sleep(0.1)
 
         # Send hex file data packets
         chunk = 0
@@ -142,35 +128,31 @@ class BleDfuUploader(object):
             data_to_send = bin_array[i:i + 20]
             self._dfu_data_send(data_to_send)
             time.sleep(0.01)
-            print "Chunk #", chunk
             chunk += 1
             if chunk % 15 == 0:
                 while self.received_notify == 0:
-                    time.sleep(0.001)
+                    pass
                 self.received_notify = 0
         self.received_notify = 0
         while self.received_notify == 0:
-            time.sleep(0.001)
-        time.sleep(0.1)
+            pass
         self.received_notify = 0
 
         # Send Validate Command
         self._dfu_state_set(Commands.VALIDATE_FIRMWARE_IMAGE)
         # Wait for notification
         while self.received_notify == 0:
-            time.sleep(0.001)
+            pass
         # Send Activate and Reset Command
         self._dfu_state_set(Commands.ACTIVATE_FIRMWARE_AND_RESET)
-        time.sleep(0.1)
 
     # Disconnect from peer device if not done already and clean up.
     def disconnect(self):
         self.device.disconnect()
 
     def received(self, data):
-        self.received_notify = 1
-
-    # print('Received: {0}'.format(repr(data)))
+        self.received_notify = data
+        print('Received: {0}'.format(data.encode("hex")))
 
 
 ble = Adafruit_BluefruitLE.get_provider()
@@ -212,6 +194,7 @@ def main():
     ble_dfu.dfu_send_image()
 
 
+#main()
 # Start the mainloop to process BLE events, and run the provided function in
 # a background thread.  When the provided main function stops running, returns
 # an integer status code, or throws an error the program will exit.
