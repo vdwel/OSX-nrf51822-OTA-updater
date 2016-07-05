@@ -64,7 +64,7 @@ class BleDfuUploader(object):
         print('Disconnecting any connected DFU devices...')
         ble.disconnect_devices([DFU_SERVICE_UUID])
 
-        # Scan for UART devices.
+        # Scan for DFU devices.
         print('Searching for DFU device...')
         try:
             self.adapter.start_scan()
