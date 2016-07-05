@@ -194,7 +194,6 @@ def main():
     ble_dfu.dfu_send_image()
 
 
-#main()
 # Start the mainloop to process BLE events, and run the provided function in
 # a background thread.  When the provided main function stops running, returns
 # an integer status code, or throws an error the program will exit.
